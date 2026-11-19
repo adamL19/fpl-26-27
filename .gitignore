@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+
+# local data (re-created by `python run.py refresh`)
+data/*.sqlite
+data/cache/
+data/my_team.json
+output/*
+!output/.gitkeep
