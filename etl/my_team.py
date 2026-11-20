@@ -33,11 +33,11 @@ class MySquad:
     def save(self, path: str | Path) -> None:
         d = asdict(self)
         d["sell_price"] = {str(k): v for k, v in self.sell_price.items()}
-        Path(path).write_text(json.dumps(d, indent=2))
+        Path(path).write_text(json.dumps(d, indent=2), encoding="utf-8")
 
     @staticmethod
     def load(path: str | Path) -> "MySquad":
-        d = json.loads(Path(path).read_text())
+        d = json.loads(Path(path).read_text(encoding="utf-8"))
         d["sell_price"] = {int(k): v for k, v in d["sell_price"].items()}
         return MySquad(**d)
 

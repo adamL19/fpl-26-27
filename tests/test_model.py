@@ -308,5 +308,27 @@ def test_cli_report_end_to_end(fake, conn, ctx, tmp_path, monkeypatch, capsys):
     for f in ("report.md", "best_squad.csv", "value_by_position.csv", "projections.csv",
               "transfers.json", "chip_plan.csv"):
         assert (out / f).exists() and (out / f).stat().st_size > 50, f
-    text = (out / "report.md").read_text()
+    text = (out / "report.md").read_text(encoding="utf-8")
     assert "Transfer recommendation" in text and "Chip plan" in text and "Best value by position" in text
+
+
+def test_report_survives_non_ascii_names_under_ascii_locale(conn, tmp_path):
+    """Regression: on Windows the default file encoding (cp1252) can't write names like
+    'Šeško'.  Reproduce with an ASCII-only locale and check the CLI still works."""
+    import os, shutil, sqlite3, subprocess, sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    src = conn.execute("PRAGMA database_list").fetchone()[2]
+    db = tmp_path / "accent.sqlite"
+    shutil.copy(src, db)
+    c = sqlite3.connect(db)
+    c.execute("update players set web_name = 'Šeško' where id = 271")
+    c.execute("update players set web_name = 'Ødegaard' where id = 400")
+    c.commit(); c.close()
+    env = dict(os.environ, PYTHONUTF8="0", PYTHONCOERCECLOCALE="0", LC_ALL="C", LANG="C")
+    r = subprocess.run([sys.executable, "run.py", "--db", str(db), "report", "--quick",
+                        "--team-file", str(tmp_path / "none.json")],
+                       cwd=root, env=env, capture_output=True, timeout=600)
+    assert r.returncode == 0, r.stderr.decode("utf-8", "replace")[-800:]
+    report = (root / "output" / "report.md").read_text(encoding="utf-8")
+    assert "Šeško" in report or "Ødegaard" in report

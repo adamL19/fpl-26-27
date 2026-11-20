@@ -13,7 +13,7 @@ def connect(db_path: str | Path) -> sqlite3.Connection:
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
-    conn.executescript(SCHEMA_FILE.read_text())
+    conn.executescript(SCHEMA_FILE.read_text(encoding="utf-8"))
     return conn
 
 

@@ -50,7 +50,7 @@ class FPLClient:
         cf = self._cache_file(path)
         if cf and self.cache_ttl > 0 and cf.exists():
             if time.time() - cf.stat().st_mtime < self.cache_ttl:
-                return json.loads(cf.read_text())
+                return json.loads(cf.read_text(encoding="utf-8"))
         try:
             resp = self.session.get(self.BASE + path, timeout=self.timeout)
         except requests.RequestException as exc:
@@ -64,7 +64,7 @@ class FPLClient:
         except ValueError as exc:
             raise FPLAPIError(f"Non-JSON response for {path}") from exc
         if cf:
-            cf.write_text(json.dumps(data))
+            cf.write_text(json.dumps(data), encoding="utf-8")
         time.sleep(self.delay)
         return data
 

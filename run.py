@@ -174,7 +174,7 @@ def cmd_report(a) -> None:
         lines.append("Options considered:\n\n" + _md(pd.DataFrame(opt_rows)) + "\n")
         (OUT / "transfers.json").write_text(json.dumps(
             {"reason": plan.reason, "free_transfers": plan.free_transfers, "moves": plan.pairs,
-             "options": opt_rows}, indent=2))
+             "options": opt_rows}, indent=2), encoding="utf-8")
 
         print("Planning chips (this solves a few dozen optimisation problems) ...")
         cg = compute_chip_gains(ctx.players, ctx.xp_all, sq.players, sq.sell_price, sq.bank,
@@ -197,12 +197,21 @@ def cmd_report(a) -> None:
         top_gain = cg.table[["wildcard", "freehit", "bboost", "3xc"]].round(1)
         lines.append("Estimated gain by gameweek (pts):\n\n" + _md(top_gain.reset_index()) + "\n")
 
-    (OUT / "report.md").write_text("\n".join(lines))
+    (OUT / "report.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
     print(f"\nFiles written to {OUT}/")
 
 
+def _safe_console() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None) -> None:
+    _safe_console()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--db", default=str(DEFAULT_DB))
     sub = ap.add_subparsers(dest="cmd", required=True)

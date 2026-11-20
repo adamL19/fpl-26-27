@@ -37,6 +37,11 @@ def missing(obj: dict, fields):
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     c = FPLClient(delay=0.1)
     problems = 0
     bs = c.bootstrap()
